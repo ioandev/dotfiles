@@ -86,6 +86,7 @@
                     "showVisualizer": false,
                     "useFixedWidth": false,
                     "visualizerType": "linear"
+{{- if eq .chezmoi.hostname "pikaoslenovo" }}
                 },
                 {
                     "displayMode": "alwaysShow",
@@ -101,6 +102,11 @@
                 {
                     "id": "PowerProfile"
                 }
+{{- else if eq .chezmoi.hostname "pikaos" }}
+                }
+{{- else }}
+                }
+{{- end }}
             ],
             "right": [
                 {
@@ -144,6 +150,13 @@
             ]
         }
     },
+{{- if eq .chezmoi.hostname "pikaoslenovo" }}
+    "battery": {
+        "chargingMode": 0
+    },
+{{- else if eq .chezmoi.hostname "pikaos" }}
+{{- else }}
+{{- end }}
     "brightness": {
         "brightnessStep": 5,
         "enableDdcSupport": false,
@@ -220,7 +233,13 @@
     "dock": {
         "backgroundOpacity": 0.42,
         "colorizeIcons": true,
+{{- if eq .chezmoi.hostname "pikaoslenovo" }}
         "displayMode": "auto_hide",
+{{- else if eq .chezmoi.hostname "pikaos" }}
+        "displayMode": "always_visible",
+{{- else }}
+        "displayMode": "always_visible",
+{{- end }}
         "enabled": true,
         "floatingRatio": 0.23,
         "monitors": [

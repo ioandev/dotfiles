@@ -23,6 +23,7 @@ input {
 output "DP-1" {
     mode "3440x1440@165.001"
     position x=0 y=0
+    variable-refresh-rate 
 }
 
 output "HDMI-A-1" {
@@ -58,7 +59,13 @@ layout {
         left 0
         right 0
         top 0
+{{- if eq .chezmoi.hostname "pikaoslenovo" }}
         bottom 0
+{{- else if eq .chezmoi.hostname "pikaos" }}
+        bottom 40
+{{- else }}
+        bottom 40
+{{- end }}
     }
 }
 
@@ -72,6 +79,7 @@ spawn-at-startup "/usr/bin/mate-polkit"
 spawn-at-startup "systemctl" "--user" "enable" "--now" "hypridle"
 spawn-at-startup "swww-daemon"
 spawn-at-startup "qs"
+spawn-at-startup "sh" "-c" "sleep 5 && /home/ioan/.config/niri/scripts/setup-workspaces.sh"
 
 environment {
     LD_PRELOAD ""
@@ -159,6 +167,7 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+Return { spawn "kitty"; }
     Mod+D { spawn "pikabar-launcher"; }
+    Mod+B { spawn "google-chrome-stable" "--new-window" "https://google.com"; }
     Super+Alt+L { spawn "pikabar-lock"; }
 
     // XF86AudioRaiseVolume allow-when-locked=true { spawn "pamixer" "-i" "5"; }
@@ -166,7 +175,7 @@ binds {
     // XF86AudioMute        allow-when-locked=true { spawn "pamixer" "-t"; }
 
     Mod+Shift+Q { spawn "wlogout"; }
-    Mod+Q { close-window; }
+    Mod+Q { spawn "/home/ioan/.config/niri/scripts/close-confirmation.sh"; }
 
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
@@ -303,8 +312,13 @@ binds {
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
+    // ─── Emergency Escape Key ───
+    // Use this when a fullscreen app blocks your keybinds.
+    // It disables any active keyboard shortcut inhibitor, restoring control.
+    MOD+DELETE                          allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
+    MOD+SHIFT+P                         { power-off-monitors; } // Turn off screens (useful for OLED or privacy)
     
     MOD+O                               repeat=false { toggle-overview; }
 
@@ -327,6 +341,17 @@ binds {
     XF86AudioPause                      allow-when-locked=true { spawn-sh "playerctl play-pause"; }
     XF86AudioPlay                       allow-when-locked=true { spawn-sh "playerctl play-pause"; }
     XF86AudioPrev                       allow-when-locked=true { spawn-sh "playerctl previous"; }
+
+
+    // Audio controls
+    XF86AudioRaiseVolume { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "increase"; }
+    XF86AudioLowerVolume { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "decrease"; }
+    XF86AudioMute { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
+
+
+    // Brightness controls
+    XF86MonBrightnessUp { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "brightness" "increase"; }
+    XF86MonBrightnessDown { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
 }
 
 

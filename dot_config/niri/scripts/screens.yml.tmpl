@@ -1,0 +1,210 @@
+
+{{- if eq .chezmoi.hostname "pikaoslenovo" }}
+# screens.yml - Niri Workspace Configuration
+# Configuration file for automated workspace setup script
+
+version: "1.0"
+
+settings:
+  debug: true
+  return_to_primary: true
+  default_wait: 3  # Default wait time for windows (seconds)
+
+timing:
+  workspace_switch: 2.5      # Wait time when switching workspaces
+  window_operation: 0.3      # Wait time for window operations
+  post_resize: 1.0           # Sleep after resizing windows
+  monitor_focus: 1.0         # Wait time when focusing monitors
+
+monitors:
+  # Primary Monitor - DP-1
+  - name: "eDP-1"
+    workspaces:
+      # Workspace 1: Productivity Apps
+      - id: 1
+        windows:
+          - name: "Todoist"
+            app: "gtk-launch"
+            args:
+              - "chrome-knaiokfnmjjldlfhlioejgcompgenfhb-Default"
+            resize: "50%"
+            
+          - name: "Claude"
+            app: "gtk-launch"
+            args:
+              - "chrome-fmpnliofjhemenmnlpbfagaolkdacoja-Default"
+            resize: "80%"
+            
+          - name: "Chrome 1"
+            app: "google-chrome-stable"
+            args:
+              - "--new-window"
+              - "https://google.com"
+            resize: "80%"
+      
+      # Workspace 2: Obsidian Notes
+      - id: 2
+        windows:
+          - name: "Obsidian 1"
+            app: "obsidian"
+            args:
+              - "/home/ioan/Documents/Obsidian/SaMearga"
+            resize: "80%"
+            
+          - name: "Obsidian 2"
+            app: "obsidian"
+            args:
+              - "/home/ioan/Documents/Obsidian/JobSearch"
+            resize: "80%"
+      
+      # Workspace 3: Communication & Media
+      - id: 3
+        windows:
+          - name: "Bitwarden"
+            app: "gtk-launch"
+            args:
+              - "chrome-fflifmfnonladkgkdehllhbcghakccgh-Default"
+            resize: "30%"
+            
+          - name: "Discord"
+            app: "/usr/bin/discord"
+            args:
+              - "--no-sandbox"
+            resize: "80%"
+            wait: 8
+            
+          - name: "Chrome 2"
+            app: "google-chrome-stable"
+            args:
+              - "--new-window"
+              - "https://youtube.com"
+            resize: "80%"
+
+{{- else if eq .chezmoi.hostname "pikaos" }}
+# screens.yml - Niri Workspace Configuration
+# Configuration file for automated workspace setup script
+
+version: "1.0"
+
+settings:
+  debug: true
+  return_to_primary: true
+  default_wait: 5  # Default wait time for windows (seconds)
+
+timing:
+  workspace_switch: 2.5      # Wait time when switching workspaces
+  window_operation: 0.3      # Wait time for window operations
+  post_resize: 1.0           # Sleep after resizing windows
+  monitor_focus: 1.0         # Wait time when focusing monitors
+
+monitors:
+  # Primary Monitor - DP-1
+  - name: "DP-1"
+    workspaces:
+      # Workspace 1: Productivity Apps
+      - id: 1
+        windows:
+          - name: "Todoist"
+            app: "gtk-launch"
+            args:
+              - "chrome-knaiokfnmjjldlfhlioejgcompgenfhb-Default"
+            resize: "50%"
+            
+          - name: "Chrome"
+            app: "google-chrome-stable"
+            args: []
+            resize: "75%"
+            
+          - name: "Claude"
+            app: "gtk-launch"
+            args:
+              - "chrome-fmpnliofjhemenmnlpbfagaolkdacoja-Default"
+            resize: "75%"
+      
+      # Workspace 2: PS2 Mono Development
+      - id: 2
+        windows:
+          - name: "VSCode ps2mono"
+            app: "code"
+            args:
+              - "/home/ioan/Documents/repos/ps2mono"
+            resize: "75%"
+            wait: 8
+            
+          - name: "Alacritty"
+            app: "alacritty"
+            args: []
+            resize: "50%"
+      
+      # Workspace 3: MySQL Downloader Development
+      - id: 3
+        windows:
+          - name: "VSCode mysql-downloader"
+            app: "code"
+            args:
+              - "/home/ioan/Documents/repos/mysql-downloader"
+            resize: "75%"
+            wait: 8
+      
+      # Workspace 4: Flatcar Development
+      - id: 4
+        windows:
+          - name: "VSCode flatcar"
+            app: "code"
+            args:
+              - "/home/ioan/Documents/repos/flatcar"
+            resize: "75%"
+            wait: 8
+      
+      # Workspace 5: PS2 Immersion
+      - id: 5
+        windows:
+          - name: "PS2 Immersion"
+            app: "google-chrome-stable"
+            args:
+              - "--new-window"
+              - "http://ps2immersion.com/"
+            resize: "35%"
+  
+  # Secondary Monitor - HDMI-A-1
+  - name: "HDMI-A-1"
+    optional: true  # Skip if monitor not detected
+    workspaces:
+      # Workspace 1: Tools & Browser
+      - id: 1
+        windows:
+          - name: "Bitwarden"
+            app: "gtk-launch"
+            args:
+              - "chrome-fflifmfnonladkgkdehllhbcghakccgh-Default"
+            resize: "35%"
+            
+          - name: "Chrome"
+            app: "google-chrome-stable"
+            args:
+              - "--new-window"
+            resize: "75%"
+            
+          - name: "Alacritty"
+            app: "alacritty"
+            args: []
+            resize: "50%"
+      
+      # Workspace 2: Communication & Notes
+      - id: 2
+        windows:
+          - name: "Discord"
+            app: "gtk-launch"
+            args:
+              - "discord"
+            resize: "60%"
+            
+          - name: "Obsidian"
+            app: "obsidian"
+            args:
+              - "/home/ioan/Documents/Obsidian/SaMearga"
+            resize: "60%"
+
+{{- else }}
+{{- end }}
+
