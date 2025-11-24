@@ -151,11 +151,14 @@
         }
     },
 {{- if eq .chezmoi.hostname "pikaoslenovo" }}
+{{- else if eq .chezmoi.hostname "pikaos" }}
     "battery": {
         "chargingMode": 0
     },
-{{- else if eq .chezmoi.hostname "pikaos" }}
 {{- else }}
+    "battery": {
+        "chargingMode": 0
+    },
 {{- end }}
     "brightness": {
         "brightnessStep": 5,
