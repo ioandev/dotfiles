@@ -162,7 +162,9 @@ window-rule {
 }
 
 binds {
+{{- if eq .chezmoi.hostname "pikaoslenovo" }}
     MouseMiddle { spawn "true"; }
+{{- end }}
 
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+Return { spawn "kitty"; }
@@ -344,14 +346,14 @@ binds {
 
 
     // Audio controls
-    XF86AudioRaiseVolume { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "increase"; }
-    XF86AudioLowerVolume { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "decrease"; }
-    XF86AudioMute { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
+    XF86AudioRaiseVolume { spawn "qs" "ipc" "call" "volume" "increase"; }
+    XF86AudioLowerVolume { spawn "qs" "ipc" "call" "volume" "decrease"; }
+    XF86AudioMute { spawn "qs" "ipc" "call" "volume" "muteOutput"; }
 
 
     // Brightness controls
-    XF86MonBrightnessUp { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "brightness" "increase"; }
-    XF86MonBrightnessDown { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
+    XF86MonBrightnessUp { spawn "qs" "ipc" "call" "brightness" "increase"; }
+    XF86MonBrightnessDown { spawn "qs" "ipc" "call" "brightness" "decrease"; }
 }
 
 
