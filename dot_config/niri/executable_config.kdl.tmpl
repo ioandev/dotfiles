@@ -62,7 +62,7 @@ layout {
 {{- if eq .chezmoi.hostname "pikaoslenovo" }}
         bottom 0
 {{- else if eq .chezmoi.hostname "pikaos" }}
-        bottom 40
+        bottom 0
 {{- else }}
         bottom 40
 {{- end }}
@@ -79,7 +79,8 @@ spawn-at-startup "/usr/bin/mate-polkit"
 spawn-at-startup "systemctl" "--user" "enable" "--now" "hypridle"
 spawn-at-startup "swww-daemon"
 spawn-at-startup "qs"
-spawn-at-startup "sh" "-c" "sleep 5 && /home/ioan/.config/niri/scripts/setup-workspaces.sh"
+//spawn-at-startup "sh" "-c" "sleep 5 && /home/ioan/.config/niri/scripts/setup-workspaces.sh"
+spawn-at-startup "gammastep-indicator" "-b" "1.0:0.4" "-t" "6500:3500"
 
 environment {
     LD_PRELOAD ""
@@ -262,7 +263,17 @@ binds {
     MOD+6                               { focus-workspace 7; }
     MOD+7                               { focus-workspace 8; }
     MOD+8                               { focus-workspace 9; }
-
+    
+    F13                               { focus-workspace 1; }
+    F14                               { focus-workspace 2; }
+    F15                               { focus-workspace 3; }
+    F16                               { focus-workspace 4; }
+    F17                               { focus-workspace 5; }
+    F18                               { focus-workspace 6; }
+    F19                               { focus-workspace 7; }
+    F20                               { focus-workspace 8; }
+    F21                               { focus-workspace 9; }
+    
     MOD+CTRL+ESCAPE                          { move-column-to-workspace 1; }
     MOD+CTRL+Grave                          { move-column-to-workspace 1; }
     MOD+CTRL+1                          { move-column-to-workspace 2; }

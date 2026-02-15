@@ -46,6 +46,7 @@
             "center": [
                 {
                     "characterCount": 2,
+                    "followFocusedScreen": false,
                     "hideUnoccupied": false,
                     "id": "Workspace",
                     "labelMode": "index"
@@ -60,6 +61,7 @@
                     "useDistroLogo": false
                 },
                 {
+                    "diskPath": "/",
                     "id": "SystemMonitor",
                     "showCpuTemp": true,
                     "showCpuUsage": true,
@@ -85,6 +87,8 @@
                     "maxWidth": 145,
                     "scrollingMode": "hover",
                     "showAlbumArt": false,
+                    "showArtistFirst": true,
+                    "showProgressRing": true,
                     "showVisualizer": false,
                     "useFixedWidth": false,
                     "visualizerType": "linear"
@@ -121,6 +125,7 @@
                     "drawerEnabled": true,
                     "id": "Tray",
                     "pinned": [
+                        "gammastep"
                     ]
                 },
                 {
@@ -265,7 +270,7 @@
 {{- else }}
         "displayMode": "always_visible",
 {{- end }}
-        "enabled": true,
+        "enabled": false,
         "floatingRatio": 0.23,
         "monitors": [
             "DP-1",
