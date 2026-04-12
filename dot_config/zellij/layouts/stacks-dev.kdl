@@ -1,0 +1,33 @@
+layout {
+    cwd "~/Documents/repos/stacks"
+
+    pane split_direction="vertical" {
+        pane split_direction="horizontal" {
+            pane {
+                command "pnpm"
+                args "--filter" "@stacks/api" "dev"
+            }
+            pane {
+                command "pnpm"
+                args "--filter" "@stacks/web" "dev"
+            }
+        }
+        pane split_direction="horizontal" {
+            pane {
+                command "pnpm"
+                args "--filter" "@stacks/video-worker" "dev"
+            }
+            pane {
+                command "pnpm"
+                args "--filter" "@stacks/moderation-worker" "dev"
+            }
+        }
+        pane split_direction="horizontal" {
+            pane {
+                command "pnpm"
+                args "--filter" "@stacks/mobile" "android"
+            }
+            pane
+        }
+    }
+}

@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e
+
+. /etc/os-release 2>/dev/null || true
+
+MYSQL_DATADIR="$HOME/mysql-data"
+
+echo "Installing MySQL server (data directory: $MYSQL_DATADIR)..."
+
+mkdir -p "$MYSQL_DATADIR"
+
+if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
+    sudo pacman -U --noconfirm "$(dirname "$0")/mariadb-12.2.2-2-x86_64.pkg.tar.zst"
+    chmod o+x "$HOME"
+    sudo chown -R mysql:mysql "$MYSQL_DATADIR"
+    sudo mariadb-install-db --user=mysql --basedir=/usr --datadir="$MYSQL_DATADIR"
+    sudo mkdir -p /etc/my.cnf.d
+    sudo tee /etc/my.cnf.d/datadir.cnf > /dev/null <<EOF
+[mysqld]
+datadir=$MYSQL_DATADIR
+EOF
+    sudo mkdir -p /etc/systemd/system/mariadb.service.d
+    sudo tee /etc/systemd/system/mariadb.service.d/override.conf > /dev/null <<EOF
+[Service]
+ProtectHome=false
+EOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now mariadb
+    sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'root'; FLUSH PRIVILEGES;"
+else
+    sudo apt install -y mysql-server
+    sudo systemctl stop mysql
+    sudo chown -R mysql:mysql "$MYSQL_DATADIR"
+    sudo mysqld --initialize --user=mysql --datadir="$MYSQL_DATADIR"
+    sudo tee /etc/mysql/mysql.conf.d/datadir.cnf > /dev/null <<EOF
+[mysqld]
+datadir=$MYSQL_DATADIR
+EOF
+    # Allow AppArmor to access the custom data directory
+    echo "  $MYSQL_DATADIR/ r," | sudo tee -a /etc/apparmor.d/local/usr.sbin.mysqld > /dev/null
+    echo "  $MYSQL_DATADIR/** rwk," | sudo tee -a /etc/apparmor.d/local/usr.sbin.mysqld > /dev/null
+    sudo apparmor_parser -r /etc/apparmor.d/usr.sbin.mysqld 2>/dev/null || true
+    sudo systemctl enable --now mysql
+    sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'; FLUSH PRIVILEGES;"
+fi
+
+echo "MySQL server installation complete! Username: root, Password: root"
+echo "Data directory: $MYSQL_DATADIR"

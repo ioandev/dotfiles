@@ -2,9 +2,16 @@
 
 set -e
 
+. /etc/os-release 2>/dev/null || true
+
 echo "Installing GNOME Keyring..."
-sudo apt update
-sudo apt install -y gnome-keyring libsecret-1-0 libsecret-1-dev
+
+if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
+    sudo pacman -S --noconfirm gnome-keyring libsecret
+else
+    sudo apt update
+    sudo apt install -y gnome-keyring libsecret-1-0 libsecret-1-dev
+fi
 
 echo "GNOME Keyring installation complete!"
 echo ""

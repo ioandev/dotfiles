@@ -2,15 +2,17 @@
 
 set -e
 
-echo "Installing Mission Center via Flatpak..."
+. /etc/os-release 2>/dev/null || true
 
-# Ensure flatpak is installed
-sudo apt install -y flatpak
+echo "Installing Mission Center..."
 
-# Add Flathub repository if not already added
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-# Install Mission Center
-flatpak install -y flathub io.missioncenter.MissionCenter
+if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
+    yay -S --noconfirm mission-center
+else
+    # Install via Flatpak on Debian-based systems
+    sudo apt install -y flatpak
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    flatpak install -y flathub io.missioncenter.MissionCenter
+fi
 
 echo "Mission Center installation complete!"

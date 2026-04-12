@@ -1,0 +1,12 @@
+layout {
+    cwd "~/Documents/repos/stacks"
+
+    pane split_direction="vertical" {
+        pane
+        pane
+        pane
+        pane
+        pane
+        pane
+    }
+}

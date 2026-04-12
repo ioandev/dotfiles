@@ -5,8 +5,9 @@ set -e
 echo "Installing nvm..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
-# Load nvm without restarting shell
-export NVM_DIR="$HOME/.nvm"
+# Load nvm without restarting shell (check both common install locations)
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -d "$HOME/.config/nvm" ] && export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 echo "Installing Node.js 25..."

@@ -2,15 +2,19 @@
 
 set -e
 
+. /etc/os-release 2>/dev/null || true
+
 echo "Installing DBeaver..."
 
-# Download latest DBeaver .deb package
-wget -O /tmp/dbeaver.deb https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb
+if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
+    yay -S --noconfirm dbeaver
+else
+    # Download latest DBeaver .deb package
+    wget -O /tmp/dbeaver.deb https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb
+    sudo apt install -y /tmp/dbeaver.deb
+    rm /tmp/dbeaver.deb
+fi
 
-# Install DBeaver
-sudo apt install -y /tmp/dbeaver.deb
-
-# Clean up
-rm /tmp/dbeaver.deb
+echo "DBeaver installation complete!"
 
 echo "DBeaver installation complete!"

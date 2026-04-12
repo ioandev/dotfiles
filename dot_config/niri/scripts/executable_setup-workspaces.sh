@@ -57,7 +57,7 @@ check_dependencies() {
     
     # Check for yq (YAML parser)
     if ! command -v yq &> /dev/null; then
-        log_error "yq (YAML parser) not found. Install it with: sudo apt install yq or from https://github.com/mikefarah/yq"
+        log_error "yq (YAML parser) not found. Install it with: sudo pacman -S yq (Arch) or sudo apt install yq (Debian) or from https://github.com/mikefarah/yq"
         missing_deps+=("yq")
     fi
     
