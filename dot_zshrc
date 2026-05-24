@@ -16,6 +16,7 @@ fi
 
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH="$PATH:$HOME/go/bin"
 
 alias c='clear'
 alias o='claude --model claude-opus-4-6'

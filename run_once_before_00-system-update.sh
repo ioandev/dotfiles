@@ -6,8 +6,8 @@ set -e
 
 if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
     echo "Updating system packages (pacman)..."
-    sudo pacman -Syu --noconfirm
-    paru -Syu
+    sudo pacman -Syu --noconfirm --ask 4 --ignore android-studio
+    paru -Syu --ignore android-studio
 else
     echo "Updating apt package lists..."
     sudo apt update
