@@ -19,5 +19,12 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$PATH:$HOME/go/bin"
 
 alias c='clear'
-alias o='claude --model claude-opus-4-6'
+alias o='claude --model claude-opus-4-7'
 alias s='claude --model claude-sonnet-4-6'
+
+d() {
+  yt-dlp -f "bestvideo[height<=480]+bestaudio/best[height<=480]" \
+    --merge-output-format mp4 \
+    -o "$HOME/Documents/repos/youtube-dl/%(title)s.%(ext)s" \
+    "$1"
+}
