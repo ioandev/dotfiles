@@ -5,27 +5,34 @@ set -e
 
 . /etc/os-release 2>/dev/null || true
 
-echo "Installing Ollama..."
-
-if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
-    sudo pacman -S --noconfirm ollama
+if command -v ollama >/dev/null 2>&1; then
+    echo "Ollama already installed, skipping install."
 else
-    curl -fsSL https://ollama.com/install.sh | sh
+    echo "Installing Ollama..."
+    if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
+        sudo pacman -S --noconfirm ollama
+    else
+        curl -fsSL https://ollama.com/install.sh | sh
+    fi
 fi
 
-echo "Configuring Ollama to listen on 0.0.0.0..."
-
-OVERRIDE_DIR=/etc/systemd/system/ollama.service.d
-OVERRIDE_FILE=$OVERRIDE_DIR/override.conf
-
-sudo mkdir -p "$OVERRIDE_DIR"
-sudo tee "$OVERRIDE_FILE" >/dev/null <<'EOF'
+# Raise parallel request slots (equivalent of `systemctl edit ollama.service`).
+sudo mkdir -p /etc/systemd/system/ollama.service.d
+sudo tee /etc/systemd/system/ollama.service.d/override.conf >/dev/null <<'EOF'
 [Service]
-Environment="OLLAMA_HOST=0.0.0.0"
+Environment="OLLAMA_NUM_PARALLEL=10"
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now ollama
+sudo systemctl enable ollama
 sudo systemctl restart ollama
 
-echo "Ollama installed and listening on 0.0.0.0"
+# Verify systemd merged the override.
+if systemctl show -p Environment ollama | grep -q "OLLAMA_NUM_PARALLEL=10"; then
+    echo "OK: OLLAMA_NUM_PARALLEL=10 is set."
+else
+    echo "ERROR: OLLAMA_NUM_PARALLEL not set - check 'systemctl show -p Environment ollama'." >&2
+    exit 1
+fi
+
+echo "Ollama installed"
