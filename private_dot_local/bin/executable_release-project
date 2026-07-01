@@ -3,7 +3,7 @@
 # ./releaseable.yml, then git-tag the commit as <project>/vX.Y.Z.
 #
 # Usage:
-#   release-project <project> [--major | --minor] [--force-other-branch] [--force-dirty]
+#   release-project <project> [--major | --patch] [--force-other-branch] [--force-dirty]
 #   release-project --list
 #   release-project --help
 
@@ -16,14 +16,16 @@ CONFIG_FILE="releaseable.yml"
 usage() {
   cat <<'EOF'
 Usage:
-  release-project <project> [--major | --minor] [--force-other-branch] [--force-dirty]
+  release-project [<project>] [--major | --patch] [--force-other-branch] [--force-dirty]
   release-project --list                    list projects in ./releaseable.yml
   release-project --help                    this message
 
+<project> can be omitted if ./releaseable.yml declares exactly one project.
+
 Flags:
   --major                bump X.Y.Z -> (X+1).0.0
-  --minor                bump X.Y.Z -> X.(Y+1).0
-  (none)                 bump X.Y.Z -> X.Y.(Z+1)
+  (none)                 bump X.Y.Z -> X.(Y+1).0  (minor is default)
+  --patch                bump X.Y.Z -> X.Y.(Z+1)
   --force-other-branch   allow release from non-default branch
   --force-dirty          allow release with uncommitted/untracked files
 
@@ -32,7 +34,8 @@ Config (./releaseable.yml):
     <project>:
       container:  <image name>         (default: <project>)
       namespace:  <registry namespace> (default: ioan-pari)
-      dockerfile: <path>               (default: ./<project>/Dockerfile)
+      dockerfile: <path>               (default: ./Dockerfile if single project,
+                                                  ./<project>/Dockerfile otherwise)
       context:    <path>               (default: dirname of dockerfile)
 EOF
 }
@@ -54,13 +57,13 @@ require_config() {
 list_projects() {
   require_yq
   require_config
-  yq eval '.projects | keys | .[]' "$CONFIG_FILE"
+  yq -r '.projects | keys | .[]' "$CONFIG_FILE"
 }
 
 # --- arg parse ---
 
 PROJECT=""
-BUMP=patch
+BUMP=minor
 FORCE_OTHER_BRANCH=0
 FORCE_DIRTY=0
 
@@ -71,11 +74,11 @@ for arg in "$@"; do
     --list)
       list_projects; exit 0 ;;
     --major)
-      [ "$BUMP" = patch ] || { echo "Error: --major and --minor are mutually exclusive" >&2; exit 1; }
+      [ "$BUMP" = minor ] || { echo "Error: --major and --patch are mutually exclusive" >&2; exit 1; }
       BUMP=major ;;
-    --minor)
-      [ "$BUMP" = patch ] || { echo "Error: --major and --minor are mutually exclusive" >&2; exit 1; }
-      BUMP=minor ;;
+    --patch)
+      [ "$BUMP" = minor ] || { echo "Error: --major and --patch are mutually exclusive" >&2; exit 1; }
+      BUMP=patch ;;
     --force-other-branch)
       FORCE_OTHER_BRANCH=1 ;;
     --force-dirty)
@@ -91,29 +94,41 @@ for arg in "$@"; do
   esac
 done
 
-if [ -z "$PROJECT" ]; then
-  usage >&2
-  exit 1
-fi
-
 require_yq
 require_config
 
+PROJECT_COUNT=$(yq -r '.projects | keys | length' "$CONFIG_FILE")
+
+if [ -z "$PROJECT" ]; then
+  if [ "$PROJECT_COUNT" = "1" ]; then
+    PROJECT=$(yq -r '.projects | keys | .[0]' "$CONFIG_FILE")
+  else
+    echo "Error: no project specified. Available:" >&2
+    yq -r '.projects | keys | .[]' "$CONFIG_FILE" | sed 's/^/  - /' >&2
+    exit 1
+  fi
+fi
+
 # --- resolve project config ---
 
-if ! yq eval ".projects | has(\"$PROJECT\")" "$CONFIG_FILE" | grep -q '^true$'; then
+if ! yq -r ".projects | has(\"$PROJECT\")" "$CONFIG_FILE" | grep -q '^true$'; then
   echo "Error: project '$PROJECT' not in $CONFIG_FILE. Available:" >&2
-  yq eval '.projects | keys | .[]' "$CONFIG_FILE" | sed 's/^/  - /' >&2
+  yq -r '.projects | keys | .[]' "$CONFIG_FILE" | sed 's/^/  - /' >&2
   exit 1
 fi
 
-CONTAINER=$(yq eval ".projects.\"$PROJECT\".container // \"$PROJECT\"" "$CONFIG_FILE")
-NAMESPACE=$(yq eval ".projects.\"$PROJECT\".namespace // \"$DEFAULT_NAMESPACE\"" "$CONFIG_FILE")
-DOCKERFILE=$(yq eval ".projects.\"$PROJECT\".dockerfile // \"./$PROJECT/Dockerfile\"" "$CONFIG_FILE")
-CONTEXT=$(yq eval ".projects.\"$PROJECT\".context // \"\"" "$CONFIG_FILE")
-if [ -z "$CONTEXT" ] || [ "$CONTEXT" = "null" ]; then
-  CONTEXT=$(dirname "$DOCKERFILE")
+if [ "$PROJECT_COUNT" = "1" ]; then
+  DEFAULT_DOCKERFILE="./Dockerfile"
+  DEFAULT_CONTEXT="."
+else
+  DEFAULT_DOCKERFILE="./$PROJECT/Dockerfile"
+  DEFAULT_CONTEXT="./$PROJECT"
 fi
+
+CONTAINER=$(yq -r ".projects.\"$PROJECT\".container // \"$PROJECT\"" "$CONFIG_FILE")
+NAMESPACE=$(yq -r ".projects.\"$PROJECT\".namespace // \"$DEFAULT_NAMESPACE\"" "$CONFIG_FILE")
+DOCKERFILE=$(yq -r ".projects.\"$PROJECT\".dockerfile // \"$DEFAULT_DOCKERFILE\"" "$CONFIG_FILE")
+CONTEXT=$(yq -r ".projects.\"$PROJECT\".context // \"$DEFAULT_CONTEXT\"" "$CONFIG_FILE")
 
 if [ ! -f "$DOCKERFILE" ]; then
   echo "Error: Dockerfile not found: $DOCKERFILE" >&2
@@ -168,7 +183,7 @@ else
   if [ -n "$BASE_VERSION" ]; then
     echo "Base version from largest $PROJECT/v* tag on '$DEFAULT_BRANCH': $BASE_VERSION"
   else
-    printf "No %s, no %s/vX.Y.Z tag found. Enter base version (X.Y.Z): " "$LEGACY_FILE" "$PROJECT"
+    printf "No %s, no %s/vX.Y.Z tag found. Enter last released version (X.Y.Z): " "$LEGACY_FILE" "$PROJECT"
     read -r BASE_VERSION
     if ! echo "$BASE_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
       echo "Invalid version: $BASE_VERSION" >&2
@@ -211,8 +226,9 @@ podman push "$IMAGE_REMOTE"
 
 # --- post ---
 
-git tag "$TAG"
-echo "Tagged HEAD as $TAG. Push with: git push origin $TAG"
+git tag -a "$TAG" -m "$TAG"
+echo "Tagged HEAD as $TAG. Pushing to origin..."
+git push origin "$TAG"
 
 if [ "$FROM_FILE" -eq 1 ]; then
   rm "$LEGACY_FILE"

@@ -28,3 +28,25 @@ d() {
     -o "$HOME/Documents/repos/youtube-dl/%(title)s.%(ext)s" \
     "$1"
 }
+cdz() {
+    local dir=~/Documents/repos/"$1"
+    if [ ! -d "$dir" ]; then
+        echo "cdz: no such repo: $1" >&2
+        return 1
+    fi
+    zellij action new-tab --cwd "$dir" --name "$1" --layout default
+}
+_cdz() {
+    _values 'repo' ${(f)"$(cd ~/Documents/repos && ls -d */ 2>/dev/null | sed 's:/$::')"}
+}
+compdef _cdz cdz
+
+alias e='exit'
+
+nmv() {
+    if [ $# -eq 2 ]; then
+        niri msg action move-workspace-to-index --reference "$1" "$2"
+    else
+        niri msg action move-workspace-to-index "$1"
+    fi
+}

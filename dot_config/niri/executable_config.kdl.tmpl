@@ -14,6 +14,7 @@ input {
 
     mouse {
         accel-profile "flat"
+        accel-speed -0.3
     }
     //focus-follows-mouse max-scroll-amount="0%"
     focus-follows-mouse // Automatically focus windows under the mouse pointer
@@ -32,7 +33,7 @@ output "HDMI-A-1" {
 }
 
 layout {
-    gaps 6
+    gaps 14
     center-focused-column "never"
     preset-column-widths {
         proportion 0.33333
@@ -51,23 +52,22 @@ layout {
 
     border {
         width 2
-        active-gradient from="#0DB7D4" to="#9778D0" angle=90
+        active-gradient from="#FFFFFF" to="#000000" angle=90
         inactive-color "#04404A"
     }
 
     struts {
-        left 0
-        right 0
-        top 0
-{{- if eq .chezmoi.hostname "pikaoslenovo" }}
+        // left 0
+        // right 0
+        // top 0
+        // bottom 20
+        left -10
+        right -10
+        top -10
         bottom 0
-{{- else if eq .chezmoi.hostname "pikaos" }}
-        bottom 0
-{{- else }}
-        bottom 40
-{{- end }}
     }
 }
+
 
 layer-rule {
     match namespace="^swww-daemon$"
@@ -77,9 +77,11 @@ layer-rule {
 spawn-at-startup "/usr/bin/mate-polkit"
 //spawn-at-startup "pikabar"
 spawn-at-startup "systemctl" "--user" "enable" "--now" "hypridle"
+spawn-at-startup "systemctl" "--user" "enable" "--now" "kde-baloo.service"
+spawn-at-startup "dolphin" "--daemon"
 spawn-at-startup "swww-daemon"
-spawn-at-startup "qs"
-//spawn-at-startup "sh" "-c" "sleep 5 && /home/ioan/.config/niri/scripts/setup-workspaces.sh"
+//spawn-at-startup "qs"
+//spawn-at-startup "sh" "-c" "sleep 5 && /home/nordic/.config/niri/scripts/setup-workspaces.sh"
 spawn-at-startup "gammastep-indicator" "-b" "1.0:0.4" "-t" "6500:3500"
 
 environment {
@@ -112,39 +114,39 @@ hotkey-overlay {
 
 //screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 screenshot-path null
-screenshot-notification-disable
-    animations {
-        workspace-switch {
-            spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
-        }
-        window-open {
-            duration-ms 200
-            curve "ease-out-quad"
-        }
-        window-close {
-            duration-ms 200
-            curve "ease-out-cubic"
-        }
-        horizontal-view-movement {
-            spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
-        }
-        window-movement {
-            spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
-        }
-        window-resize {
-            spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
-        }
-        config-notification-open-close {
-            spring damping-ratio=0.6 stiffness=1200 epsilon=0.001
-        }
-        screenshot-ui-open {
-            duration-ms 300
-            curve "ease-out-quad"
-        }
-        overview-open-close {
-            spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
-        }
+// screenshot-notification-disable
+animations {
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
     }
+    window-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    window-close {
+        duration-ms 200
+        curve "ease-out-cubic"
+    }
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    window-resize {
+        spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
+    }
+    config-notification-open-close {
+        spring damping-ratio=0.6 stiffness=1200 epsilon=0.001
+    }
+    screenshot-ui-open {
+        duration-ms 300
+        curve "ease-out-quad"
+    }
+    overview-open-close {
+        spring damping-ratio=1.0 stiffness=900 epsilon=0.0001
+    }
+}
 
 window-rule {
     match app-id="^(steam_app_.*)$"
@@ -162,10 +164,12 @@ window-rule {
     clip-to-geometry true
 }
 
+window-rule {
+    match app-id="jetbrains-studio"
+    default-column-width {}
+}
+
 binds {
-{{- if eq .chezmoi.hostname "pikaoslenovo" }}
-    MouseMiddle { spawn "true"; }
-{{- end }}
 
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+Return { spawn "kitty"; }
@@ -178,7 +182,8 @@ binds {
     // XF86AudioMute        allow-when-locked=true { spawn "pamixer" "-t"; }
 
     Mod+Shift+Q { spawn "wlogout"; }
-    Mod+Q { spawn "/home/ioan/.config/niri/scripts/close-confirmation.sh"; }
+    Mod+Q { spawn "/home/nordic/.config/niri/scripts/close-confirmation.sh"; }
+    Mod+Insert { spawn "/home/nordic/.config/niri/scripts/focus-today-and-or-toggle-today-dashboard.sh"; }
 
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
@@ -189,7 +194,7 @@ binds {
     Mod+K     { focus-window-up; }
     //Mod+L     { focus-column-right; }
 
-    Mod+L { spawn "qs" "ipc" "call" "lockScreen" "lock"; }
+    Mod+L { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 
     Mod+Ctrl+Left  { move-column-left; }
     Mod+Ctrl+Down  { move-window-down; }
@@ -293,7 +298,7 @@ binds {
     MOD+CTRL+F2                          { move-column-to-workspace 5; }
     MOD+CTRL+F3                          { move-column-to-workspace 6; }
     
-    MOD+TAB                             hotkey-overlay-title="Switch Monitor" { spawn "/home/ioan/.config/niri/scripts/switch-screen.sh"; }
+    MOD+TAB                             hotkey-overlay-title="Switch Monitor" { spawn "/home/nordic/.config/niri/scripts/switch-screen.sh"; }
 
     MOD+CTRL+F                          { expand-column-to-available-width; }
 
@@ -335,12 +340,12 @@ binds {
     
     MOD+O                               repeat=false { toggle-overview; }
 
-    MOD+E                             hotkey-overlay-title="File Manager: Nautilus" { spawn-sh "nautilus"; }
+    MOD+E                             hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
 
     // Core Noctalia binds
-    Mod+Space { spawn "qs" "ipc" "call" "launcher" "toggle"; }
-    Mod+S { spawn "qs" "ipc" "call" "controlCenter" "toggle"; }
-    Mod+Comma { spawn "qs" "ipc" "call" "settings" "toggle"; }
+    Mod+Space { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+    Mod+S { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "controlCenter" "toggle"; }
+    Mod+Comma { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "settings" "toggle"; }
 
     // Screenshot region to clipboard
     Mod+Shift+S { spawn "sh" "-c" "grim -g \"$(slurp)\" - | wl-copy"; }
@@ -357,17 +362,18 @@ binds {
 
 
     // Audio controls
-    XF86AudioRaiseVolume { spawn "qs" "ipc" "call" "volume" "increase"; }
-    XF86AudioLowerVolume { spawn "qs" "ipc" "call" "volume" "decrease"; }
-    XF86AudioMute { spawn "qs" "ipc" "call" "volume" "muteOutput"; }
+    XF86AudioRaiseVolume { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "increase"; }
+    XF86AudioLowerVolume { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "decrease"; }
+    XF86AudioMute { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
 
 
     // Brightness controls
-    XF86MonBrightnessUp { spawn "qs" "ipc" "call" "brightness" "increase"; }
-    XF86MonBrightnessDown { spawn "qs" "ipc" "call" "brightness" "decrease"; }
+    XF86MonBrightnessUp { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "brightness" "increase"; }
+    XF86MonBrightnessDown { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
 }
 
 
 switch-events {
-    lid-close { spawn "qs" "ipc" "call" "lockScreen" "lock"; }
+    lid-close { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 }
+spawn-at-startup "qs" "-c" "noctalia-shell"

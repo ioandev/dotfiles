@@ -27,7 +27,10 @@ layout {
                 command "pnpm"
                 args "--filter" "@stacks/mobile" "android"
             }
-            pane
+            pane {
+                command "pnpm"
+                args "--filter" "@stacks/task-worker" "dev"
+            }
         }
     }
 }

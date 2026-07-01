@@ -3,8 +3,9 @@
 # Repo must have a ./releaseable.yml describing its projects.
 
 # Release a project defined in releaseable.yml.
-#   just release gatekeeper                     patch bump
-#   just release gatekeeper --minor             minor bump
+#   just release gatekeeper                     minor bump (default)
+#   just release gatekeeper --patch             patch bump
+#   just release gatekeeper --major             major bump
 #   just release gatekeeper --force-dirty       allow dirty tree
 #   just release --list                         list projects
 #   just release --help                         usage
