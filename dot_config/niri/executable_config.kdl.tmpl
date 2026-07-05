@@ -189,7 +189,12 @@ binds {
 
     Mod+Shift+Q { spawn "wlogout"; }
     Mod+Q { spawn "/home/nordic/.config/niri/scripts/close-confirmation.sh"; }
-    Mod+Insert { spawn "/home/nordic/.config/niri/scripts/focus-today-and-or-toggle-today-dashboard.sh"; }
+    //Mod+Insert { spawn "/home/nordic/.config/niri/scripts/focus-today-and-or-toggle-today-dashboard.sh"; }
+{{ if ne .profile "guest" }}
+    // Escape from VM guest (Boxes inhibits shortcuts while focused): fires despite
+    // the grab, and moving focus off the Boxes window ends the grab itself.
+    Mod+Insert allow-inhibiting=false { focus-column-left; }
+{{ end }}
     Mod+numbersign { spawn "/home/nordic/.config/niri/scripts/focus-terminal.sh"; }
 
     Mod+Left  { focus-column-left; }
