@@ -76,7 +76,9 @@ layer-rule {
 
 spawn-at-startup "/usr/bin/mate-polkit"
 //spawn-at-startup "pikabar"
+{{ if ne .profile "guest" }}
 spawn-at-startup "systemctl" "--user" "enable" "--now" "hypridle"
+{{ end }}
 spawn-at-startup "systemctl" "--user" "enable" "--now" "kde-baloo.service"
 spawn-at-startup "dolphin" "--daemon"
 spawn-at-startup "swww-daemon"
