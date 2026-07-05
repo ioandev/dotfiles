@@ -21,10 +21,15 @@ input {
     //workspace-auto-back-and-forth // Enable workspace back & forth switching
 }
 
+// VM guest display (QEMU/KVM). Mode auto-negotiated (no forced mode).
+output "Virtual-1" {
+    position x=0 y=0
+}
+
 output "DP-1" {
     mode "3440x1440@165.001"
     position x=0 y=0
-    variable-refresh-rate 
+    variable-refresh-rate
 }
 
 output "HDMI-A-1" {
@@ -382,3 +387,8 @@ switch-events {
     lid-close { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 }
 spawn-at-startup "qs" "-c" "noctalia-shell"
+
+// Fix double/ghost cursor on virtio-gpu (VM): draw cursor in software, not the HW plane.
+debug {
+    disable-cursor-plane
+}

@@ -11,7 +11,10 @@ echo "Installing MySQL server (data directory: $MYSQL_DATADIR)..."
 mkdir -p "$MYSQL_DATADIR"
 
 if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
-    sudo pacman -U --noconfirm "$(dirname "$0")/mariadb-12.2.2-2-x86_64.pkg.tar.zst"
+    sudo pacman -U --noconfirm \
+        "{{ .chezmoi.sourceDir }}/mariadb-libs-12.2.2-2-x86_64.pkg.tar.zst" \
+        "{{ .chezmoi.sourceDir }}/mariadb-clients-12.2.2-2-x86_64.pkg.tar.zst" \
+        "{{ .chezmoi.sourceDir }}/mariadb-12.2.2-2-x86_64.pkg.tar.zst"
     chmod o+x "$HOME"
     sudo chown -R mysql:mysql "$MYSQL_DATADIR"
     sudo mariadb-install-db --user=mysql --basedir=/usr --datadir="$MYSQL_DATADIR"
