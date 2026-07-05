@@ -1,0 +1,1 @@
+  sudo pacman -S plasma-x11-session
