@@ -1,0 +1,17 @@
+{{ if eq .profile "guest" }}
+run_once_install-android-studio.sh
+run_once_install-coolercontrol.sh
+run_once_install-discord.sh
+run_once_install-easyeffects.sh
+run_once_install-gnome-boxes.sh
+run_once_install-gnome-dark-theme.sh
+run_once_install-lm-sensors.sh
+run_once_install-obs-studio.sh
+run_once_install-ollama.sh
+run_once_configure-ollama-compose-cron.sh
+run_once_install-printer.sh
+run_once_install-rocm.sh
+run_once_install-screencast-portal.sh
+run_once_install-steam.sh
+run_once_install-tor-browser.sh
+{{ end }}

@@ -1,3 +1,8 @@
+{{- $profile := promptChoiceOnce . "profile" "Machine profile" (list "full" "guest") -}}
+
+[data]
+    profile = {{ $profile | quote }}
+
 [diff]
     command = "code"
     args = ["--wait", "--diff", "{{ `{{ .Destination }}` }}", "{{ `{{ .Target }}` }}"]

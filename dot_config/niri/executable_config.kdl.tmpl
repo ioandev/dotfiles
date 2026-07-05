@@ -83,6 +83,10 @@ spawn-at-startup "swww-daemon"
 //spawn-at-startup "qs"
 //spawn-at-startup "sh" "-c" "sleep 5 && /home/nordic/.config/niri/scripts/setup-workspaces.sh"
 spawn-at-startup "gammastep-indicator" "-b" "1.0:0.4" "-t" "6500:3500"
+{{ if eq .profile "guest" }}
+// SPICE clipboard sync (VM guest): vdagent binds Xwayland, xwayland-satellite bridges X11<->Wayland
+spawn-at-startup "spice-vdagent"
+{{ end }}
 
 environment {
     LD_PRELOAD ""

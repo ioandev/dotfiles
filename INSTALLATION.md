@@ -20,7 +20,11 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply ioandev/dotfiles
 
 This will:
 
-1. Generate `~/.config/chezmoi/chezmoi.toml` from `.chezmoi.toml.tmpl` (VS Code diff/merge tooling — no manual setup needed).
+1. Generate `~/.config/chezmoi/chezmoi.toml` from `.chezmoi.toml.tmpl` (VS Code diff/merge tooling — no manual setup needed). You'll be asked for a **machine profile**:
+   - `full` — everything
+   - `guest` — for VMs; skips Android Studio (see `.chezmoiignore`)
+
+   The answer is stored in `[data]` in `~/.config/chezmoi/chezmoi.toml`. To change it later, edit that file and re-run `chezmoi apply`, or re-init non-interactively: `chezmoi init --promptChoice "Machine profile=guest"`.
 2. Run the `run_once_before_*` scripts first: full system update, then podman install. Expect sudo prompts.
 3. Apply all dotfiles (`~/.config/niri`, `~/.config/noctalia`, `~/.config/hypr`, `~/.zshrc`, etc.).
 4. Run every `run_once_install-*.sh` script — this installs the full application set (browsers, dev tools, VMs, etc.) and takes a while on first run.
@@ -65,6 +69,24 @@ Then:
    ```
 3. **Reload config**: niri live-reloads `config.kdl` on save. Validate with `niri validate`.
 4. **Set a wallpaper**: `swww img <path>`.
+
+### Are you setting up a VM guest?
+
+If this machine is a VM guest (GNOME Boxes / SPICE) — i.e. you picked the `guest` profile at init:
+
+```bash
+sudo pacman -S niri kitty        # kitty or terminal you want
+sudo pacman -S spice-vdagent xwayland-satellite wl-clipboard
+sudo systemctl enable --now spice-vdagentd
+```
+
+The `guest` profile automatically adds this to `~/.config/niri/config.kdl` (don't add it by hand — the file is chezmoi-managed and hand edits get overwritten on apply):
+
+```kdl
+spawn-at-startup "spice-vdagent"
+```
+
+That gives host↔guest clipboard sync: vdagent binds the Xwayland display (xwayland-satellite bridges X11↔Wayland clipboards). Log out/in to the niri session and test copy/paste both directions.
 
 ### Key bindings to know
 
