@@ -7,6 +7,12 @@ INVESTIGATION.md
 start-vm.sh
 vm-manjaro-kde-2.xml
 
+mariadb-12.2.2-2-x86_64.pkg.tar.zst
+mariadb-12.2.2-2-x86_64.pkg.tar.zst.sig
+mariadb-clients-12.2.2-2-x86_64.pkg.tar.zst
+mariadb-clients-12.2.2-2-x86_64.pkg.tar.zst.sig
+mariadb-libs-12.2.2-2-x86_64.pkg.tar.zst
+mariadb-libs-12.2.2-2-x86_64.pkg.tar.zst.sig
 {{ if eq .profile "guest" }}
 run_once_install-android-studio.sh
 run_once_install-coolercontrol.sh
