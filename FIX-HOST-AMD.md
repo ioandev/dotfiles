@@ -42,7 +42,45 @@ virsh -c qemu:///session define /tmp/vm.xml
 
 Then **fully shut down** the VM (guest reboot is not enough — the QEMU process must restart) and start it again from Boxes.
 
+## Known-good domain XML
+
+`vm-manjaro-kde-2.xml` in the repo root is the complete working configuration (native context + rendernode + no tablet + vmport off + server mouse mode). Restore from scratch:
+
+```bash
+virsh -c qemu:///session define vm-manjaro-kde-2.xml
+```
+
+The double-cursor saga, for posterity — three separate absolute-pointer sources each forced SPICE client-mouse mode (host cursor drawn on top of the guest one). All must stay off:
+1. USB tablet `<input type='tablet' bus='usb'/>` — removed
+2. vmport/vmmouse — `<vmport state='off'/>` in `<features>`
+3. spice-vdagent mouse injection — `<mouse mode='server'/>` in `<graphics>` (clipboard unaffected)
+
+## Script
+
+`~/.local/bin/fix-guest.sh [vm-name]` (chezmoi-managed: `private_dot_local/bin/executable_fix-guest.sh`) applies both fixes — rendernode pin **and** USB tablet removal (cursor offset fix) — shutting down and restarting the VM if it was running. Boxes reverts the `<graphics>` block whenever it rewrites the domain XML, so rerun the script after touching VM settings in the Boxes UI.
+
 ## Caveats
 
 - Toggling the 3D acceleration switch in the Boxes UI may rewrite the `<graphics>` block and drop the rendernode — re-apply the fix if corruption returns after touching that toggle.
 - If it's still corrupt on the correct rendernode: suspect a guest mesa too old for the host's virglrenderer, or a virgl bug on RDNA3. Test the guest with 3D off (llvmpipe) to confirm the pipeline otherwise works.
+- virgl on RDNA3 occasionally crashes the whole VM (host `amdgpu: [gfxhub] page fault ... in process qemu-system-x86` → `ring gfx timeout, soft recovered` → QEMU GL context lost → domain "crashed"). Known virglrenderer/radeonsi bug; nothing host-config can do. Restart via `start-vm.sh`.
+- **3D acceleration must stay ON for a niri guest.** Tried disabling it (2026-07-07) to stop the virgl crashes: niri's DRM backend cannot open the GL-less virtio-vga device (`error adding device: Failed to open device: Invalid argument`, `Error::DeviceMissing`) — black screen, no outputs. No software-rendering fallback in niri's tty backend. So: 3D on + rendernode pin + accept the occasional virgl crash.
+- **DRM native context: WORKING since 2026-07-07** (host kernel 6.18, qemu 11.0, virglrenderer 1.3). Guest `glxinfo` shows `AMD Radeon RX 7800 XT (radeonsi, navi32, ACO)` — no virgl translation, so the virgl crash class above is gone and GPU perf is near-native. `fix-guest.sh` restores the full config (rendernode + tablet + native context) if Boxes clobbers it; `start-vm.sh` detects and auto-repairs.
+  **History**: first attempt failed on host kernel 6.12 with `kvm run failed Bad address` at boot — KVM in 6.12 can't map GPU VRAM (pfnmap) into guests; support landed in 6.13+. Fix was upgrading the host to linux618. Note: with blob resources active, `virsh screenshot` no longer works (`screendump: no surface`) — use the viewer.
+
+  Required XML (all four pieces, on top of the rendernode pin):
+  1. `<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>`
+  2. After `</currentMemory>`: `<memoryBacking><source type='memfd'/><access mode='shared'/></memoryBacking>`
+  3. Video model: `<model type='virtio' blob='on' ...>`
+  4. Before `</domain>`:
+     ```xml
+     <qemu:override>
+       <qemu:device alias='video0'>
+         <qemu:frontend>
+           <qemu:property name='drm_native_context' type='bool' value='true'/>
+           <qemu:property name='hostmem' type='unsigned' value='4294967296'/>
+         </qemu:frontend>
+       </qemu:device>
+     </qemu:override>
+     ```
+  Success check: guest `glxinfo -B | grep renderer` says `radeonsi`, not `virgl`. If it works, virgl crashes and the translation overhead are gone.

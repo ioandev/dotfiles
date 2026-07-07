@@ -1,3 +1,12 @@
+# Repo-only files - never deploy into $HOME
+README.md
+INSTALLATION.md
+FIX-HOST-AMD.md
+KEY.md
+INVESTIGATION.md
+start-vm.sh
+vm-manjaro-kde-2.xml
+
 mariadb-12.2.2-2-x86_64.pkg.tar.zst
 mariadb-12.2.2-2-x86_64.pkg.tar.zst.sig
 mariadb-clients-12.2.2-2-x86_64.pkg.tar.zst
@@ -10,6 +19,7 @@ run_once_install-coolercontrol.sh
 run_once_install-discord.sh
 run_once_install-easyeffects.sh
 run_once_install-gnome-boxes.sh
+run_once_install-virt-manager.sh
 run_once_install-gnome-dark-theme.sh
 run_once_install-lm-sensors.sh
 run_once_install-obs-studio.sh
