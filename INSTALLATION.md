@@ -76,9 +76,9 @@ If this machine is a VM guest (GNOME Boxes / SPICE) — i.e. you picked the `gue
 
 ```bash
 sudo pacman -S niri kitty        # kitty or terminal you want
-sudo pacman -S spice-vdagent xwayland-satellite wl-clipboard xclip clipnotify
-sudo systemctl enable --now spice-vdagentd
 ```
+
+The clipboard stack (spice-vdagent, xwayland-satellite, wl-clipboard, xclip, clipnotify + the `spice-vdagentd` service) is installed automatically by `run_once_install-spice-guest-tools.sh.tmpl` — it only runs on the `guest` profile. The niri config (guest profile) autostarts `spice-vdagent` and `clipboard-bridge.sh`, giving clipboard sync in both directions.
 
 The `guest` profile automatically adds this to `~/.config/niri/config.kdl` (don't add it by hand — the file is chezmoi-managed and hand edits get overwritten on apply):
 

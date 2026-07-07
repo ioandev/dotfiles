@@ -1,0 +1,25 @@
+{{ if eq .profile "guest" -}}
+#!/bin/bash
+
+set -e
+
+. /etc/os-release 2>/dev/null || true
+
+echo "Installing SPICE guest tools (clipboard stack: vdagent + satellite + bridge deps)..."
+
+if [[ "$ID" == "manjaro" ]] || [[ "$ID_LIKE" == *"arch"* ]]; then
+    sudo pacman -S --noconfirm --needed \
+        spice-vdagent \
+        xwayland-satellite \
+        wl-clipboard \
+        xclip \
+        clipnotify
+else
+    sudo apt update
+    sudo apt install -y spice-vdagent wl-clipboard xclip clipnotify
+fi
+
+sudo systemctl enable --now spice-vdagentd
+
+echo "SPICE guest tools installed."
+{{ end -}}
