@@ -76,7 +76,7 @@ If this machine is a VM guest (GNOME Boxes / SPICE) — i.e. you picked the `gue
 
 ```bash
 sudo pacman -S niri kitty        # kitty or terminal you want
-sudo pacman -S spice-vdagent xwayland-satellite wl-clipboard
+sudo pacman -S spice-vdagent xwayland-satellite wl-clipboard xclip clipnotify
 sudo systemctl enable --now spice-vdagentd
 ```
 
