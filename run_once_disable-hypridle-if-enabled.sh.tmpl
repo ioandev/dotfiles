@@ -1,0 +1,28 @@
+{{ if eq .profile "guest" -}}
+#!/bin/bash
+set -e
+
+# Guest VMs shouldn't run hypridle (idle daemon → screen-off / lock / suspend).
+# The niri config no longer auto-enables it on guest profiles, but if it's found
+# enabled here anyway (leftover state, a manual `systemctl --user enable`, etc.)
+# offer to turn it off. Runs once; re-runs only if this script's contents change.
+
+state="$(systemctl --user is-enabled hypridle.service 2>/dev/null || true)"
+
+if [ "$state" = "enabled" ]; then
+    if [ -e /dev/tty ]; then
+        read -r -p "hypridle is enabled on this guest VM. Disable it? [y/N] " response < /dev/tty
+        case "$response" in
+            [yY]|[yY][eE][sS])
+                systemctl --user disable --now hypridle.service
+                echo "hypridle disabled on this machine."
+                ;;
+            *)
+                echo "Leaving hypridle enabled."
+                ;;
+        esac
+    else
+        echo "hypridle is enabled but there is no terminal to prompt on; leaving as-is." >&2
+    fi
+fi
+{{- end }}

@@ -81,7 +81,12 @@ layer-rule {
 
 spawn-at-startup "/usr/bin/mate-polkit"
 //spawn-at-startup "pikabar"
+// hypridle (idle daemon: screen-off / lock / suspend) — only auto-enable it on
+// real machines. Guest VMs skip it; run_once_disable-hypridle-if-enabled.sh.tmpl
+// is a backstop that offers to disable it if it's ever found enabled on a guest.
+{{ if ne .profile "guest" }}
 spawn-at-startup "systemctl" "--user" "enable" "--now" "hypridle"
+{{ end }}
 spawn-at-startup "systemctl" "--user" "enable" "--now" "kde-baloo.service"
 spawn-at-startup "dolphin" "--daemon"
 spawn-at-startup "swww-daemon"

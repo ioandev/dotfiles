@@ -22,6 +22,7 @@ export PATH="$PATH:$HOME/bin"   # chezmoi and other user-local binaries
 alias c='clear'
 alias o='claude --model claude-opus-4-7'
 alias s='claude --model claude-sonnet-4-6'
+alias cl='claude --dangerously-skip-permissions'
 
 d() {
   yt-dlp -f "bestvideo[height<=480]+bestaudio/best[height<=480]" \
