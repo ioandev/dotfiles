@@ -36,6 +36,17 @@ sed -i "s|<gl enable='yes'/>|<gl enable='yes' rendernode='$RENDERNODE'/>|" "$TMP
 sed -i "/<input type='tablet' bus='usb'>/,/<\/input>/d" "$TMP"
 sed -i "/<input type='tablet' bus='usb'\/>/d" "$TMP"
 
+# Disable vmport (vmmouse absolute pointer forces client-mouse mode -> double cursor)
+if ! grep -q "<vmport" "$TMP"; then
+    sed -i "s|<acpi/>|<acpi/>\n    <vmport state='off'/>|" "$TMP"
+fi
+
+# Force server mouse mode (vdagent would switch to client mode -> double cursor;
+# clipboard via vdagent is unaffected)
+if ! grep -q "<mouse mode=" "$TMP"; then
+    sed -i "s|<graphics type='spice'>|<graphics type='spice'>\n      <mouse mode='server'/>|" "$TMP"
+fi
+
 # DRM native context (idempotent: each piece added only if missing)
 python3 - "$TMP" <<'EOF'
 import sys, re

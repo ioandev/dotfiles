@@ -42,6 +42,19 @@ virsh -c qemu:///session define /tmp/vm.xml
 
 Then **fully shut down** the VM (guest reboot is not enough — the QEMU process must restart) and start it again from Boxes.
 
+## Known-good domain XML
+
+`vm-manjaro-kde-2.xml` in the repo root is the complete working configuration (native context + rendernode + no tablet + vmport off + server mouse mode). Restore from scratch:
+
+```bash
+virsh -c qemu:///session define vm-manjaro-kde-2.xml
+```
+
+The double-cursor saga, for posterity — three separate absolute-pointer sources each forced SPICE client-mouse mode (host cursor drawn on top of the guest one). All must stay off:
+1. USB tablet `<input type='tablet' bus='usb'/>` — removed
+2. vmport/vmmouse — `<vmport state='off'/>` in `<features>`
+3. spice-vdagent mouse injection — `<mouse mode='server'/>` in `<graphics>` (clipboard unaffected)
+
 ## Script
 
 `~/.local/bin/fix-guest.sh [vm-name]` (chezmoi-managed: `private_dot_local/bin/executable_fix-guest.sh`) applies both fixes — rendernode pin **and** USB tablet removal (cursor offset fix) — shutting down and restarting the VM if it was running. Boxes reverts the `<graphics>` block whenever it rewrites the domain XML, so rerun the script after touching VM settings in the Boxes UI.

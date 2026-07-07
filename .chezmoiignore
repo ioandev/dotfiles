@@ -5,6 +5,7 @@ FIX-HOST-AMD.md
 KEY.md
 INVESTIGATION.md
 start-vm.sh
+vm-manjaro-kde-2.xml
 
 {{ if eq .profile "guest" }}
 run_once_install-android-studio.sh
