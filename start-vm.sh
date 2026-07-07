@@ -14,9 +14,10 @@ if [[ "$state" == "running" ]]; then
 fi
 
 # 3D accel must stay on (niri guest requires it, see FIX-HOST-AMD.md).
-# If Boxes clobbered the rendernode pin, restore it.
-if virsh -c $URI dumpxml --inactive "$VM" | grep -q "<gl enable='yes'/>"; then
-    echo "3D on but rendernode missing - reapplying fixes..."
+# If Boxes clobbered any fix (rendernode pin, native context), restore all.
+xml=$(virsh -c $URI dumpxml --inactive "$VM")
+if ! grep -q "rendernode=" <<<"$xml" || ! grep -q "drm_native_context" <<<"$xml"; then
+    echo "Config clobbered - reapplying fixes..."
     "$HOME/.local/bin/fix-guest.sh" "$VM"
 fi
 

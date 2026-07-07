@@ -2,11 +2,12 @@
 # Reapply GNOME Boxes VM fixes that Boxes keeps reverting (see FIX-HOST-AMD.md):
 #   - pin virgl rendernode to the dGPU (dual-GPU host -> corrupted 3D display otherwise)
 #   - remove the USB tablet input (fixes cursor offset / double cursor in niri guest)
+#   - DRM native context (blob + hostmem + memfd + qemu:override) - needs host kernel 6.13+
 # Usage: fix-guest.sh [vm-name]
 set -e
 
 VM="${1:-manjaro-kde-2}"
-RENDERNODE="/dev/dri/renderD128" # RX 7700/7800 XT — the GPU driving the monitors
+RENDERNODE="/dev/dri/renderD128" # RX 7800 XT — the GPU driving the monitors
 URI="qemu:///session"
 TMP="$(mktemp)"
 trap 'rm -f "$TMP"' EXIT
@@ -35,10 +36,40 @@ sed -i "s|<gl enable='yes'/>|<gl enable='yes' rendernode='$RENDERNODE'/>|" "$TMP
 sed -i "/<input type='tablet' bus='usb'>/,/<\/input>/d" "$TMP"
 sed -i "/<input type='tablet' bus='usb'\/>/d" "$TMP"
 
+# DRM native context (idempotent: each piece added only if missing)
+python3 - "$TMP" <<'EOF'
+import sys, re
+p = sys.argv[1]
+x = open(p).read()
+if "xmlns:qemu" not in x:
+    x = x.replace("<domain type='kvm'>",
+                  "<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>", 1)
+if "<memoryBacking>" not in x:
+    x = re.sub(r"(</currentMemory>\n)", r"""\1  <memoryBacking>
+    <source type='memfd'/>
+    <access mode='shared'/>
+  </memoryBacking>
+""", x, count=1)
+if "blob=" not in x:
+    x = x.replace("<model type='virtio' heads='1' primary='yes'>",
+                  "<model type='virtio' blob='on' heads='1' primary='yes'>", 1)
+if "drm_native_context" not in x:
+    x = x.replace("</domain>", """  <qemu:override>
+    <qemu:device alias='video0'>
+      <qemu:frontend>
+        <qemu:property name='drm_native_context' type='bool' value='true'/>
+        <qemu:property name='hostmem' type='unsigned' value='4294967296'/>
+      </qemu:frontend>
+    </qemu:device>
+  </qemu:override>
+</domain>""", 1)
+open(p, "w").write(x)
+EOF
+
 virsh -c $URI define "$TMP"
 
 echo "Now in config:"
-grep "gl enable\|input type" "$TMP" | sed 's/^ *//'
+grep "gl enable\|input type\|drm_native_context\|blob=" "$TMP" | sed 's/^ *//'
 
 if [[ $was_running -eq 1 ]]; then
     virsh -c $URI start "$VM"
