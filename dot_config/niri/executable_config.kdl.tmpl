@@ -73,7 +73,6 @@ layout {
     }
 }
 
-
 layer-rule {
     match namespace="^swww-daemon$"
     place-within-backdrop true
@@ -401,8 +400,3 @@ switch-events {
     lid-close { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 }
 spawn-at-startup "qs" "-c" "noctalia-shell"
-
-// Fix double/ghost cursor on virtio-gpu (VM): draw cursor in software, not the HW plane.
-debug {
-    disable-cursor-plane
-}
