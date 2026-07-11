@@ -20,11 +20,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply ioandev/dotfiles
 
 This will:
 
-1. Generate `~/.config/chezmoi/chezmoi.toml` from `.chezmoi.toml.tmpl` (VS Code diff/merge tooling — no manual setup needed). You'll be asked for a **machine profile**:
-   - `full` — everything
-   - `guest` — for VMs; skips Android Studio (see `.chezmoiignore`)
-
-   The answer is stored in `[data]` in `~/.config/chezmoi/chezmoi.toml`. To change it later, edit that file and re-run `chezmoi apply`, or re-init non-interactively: `chezmoi init --promptChoice "Machine profile=guest"`.
+1. Generate `~/.config/chezmoi/chezmoi.toml` from `.chezmoi.toml.tmpl` (VS Code diff/merge tooling — no manual setup needed). You'll be asked for a **machine profile** — `full` or `guest`. See [Machine profiles](#machine-profiles) below to choose the right one, preset it non-interactively, or change it later.
 2. Run the `run_once_before_*` scripts first: full system update, then podman install. Expect sudo prompts.
 3. Apply all dotfiles (`~/.config/niri`, `~/.config/noctalia`, `~/.config/hypr`, `~/.zshrc`, etc.).
 4. Run every `run_once_install-*.sh` script — this installs the full application set (browsers, dev tools, VMs, etc.) and takes a while on first run.
@@ -34,6 +30,55 @@ Some templates are hostname-aware (`dot_config/niri/scripts/screens.yml.tmpl` ma
 ```bash
 hostnamectl set-hostname <name>
 ```
+
+## Machine profiles
+
+At init, chezmoi asks for a **machine profile** (a `promptChoiceOnce` in `.chezmoi.toml.tmpl`). The answer is written to `[data] profile` in `~/.config/chezmoi/chezmoi.toml` and drives what gets installed and how a few configs are templated.
+
+| Profile | Use for |
+|---|---|
+| `full` | A physical / main machine — installs the complete app set |
+| `guest` | A VM guest (GNOME Boxes / SPICE / virt-manager) — leaner and VM-aware |
+
+### Install with a specific profile
+
+Skip the interactive prompt by passing the answer with `--promptChoice` (matched on the prompt text `Machine profile`):
+
+```bash
+# Physical / main machine
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptChoice "Machine profile=full" ioandev/dotfiles
+
+# VM guest
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptChoice "Machine profile=guest" ioandev/dotfiles
+```
+
+Omit `--promptChoice` to be asked interactively (the plain command in [step 2](#2-install-chezmoi-and-apply)).
+
+### What the profile changes
+
+| Area | `full` | `guest` |
+|---|---|---|
+| Noctalia color scheme (`dot_config/noctalia/…settings.json.tmpl`) | Gruber Darker | Ember Red |
+| SPICE clipboard stack (`run_once_install-spice-guest-tools`) | — | installed |
+| niri `spice-vdagent` autostart (`dot_config/niri/…config.kdl.tmpl`) | — | yes |
+| hypridle | left as-is | disabled (`run_once_disable-hypridle-if-enabled`) |
+| Host-only apps — Android Studio, Steam, OBS, Ollama, ROCm, printer, Discord, EasyEffects, CoolerControl, lm-sensors, Tor Browser, GNOME Boxes, virt-manager, screencast-portal (`.chezmoiignore`) | installed | skipped |
+
+### Change the profile later
+
+`profile` uses `promptChoiceOnce`, so a normal `chezmoi init` / `chezmoi apply` won't re-prompt once it's set. To switch:
+
+```bash
+# Option A — edit the stored value, then re-apply
+$EDITOR ~/.config/chezmoi/chezmoi.toml      # change the: profile = "…"  line
+chezmoi apply
+
+# Option B — re-init non-interactively, then apply
+chezmoi init --promptChoice "Machine profile=guest"
+chezmoi apply
+```
+
+Preview what a switch would touch before committing to it with `chezmoi diff`.
 
 ## 3. First-time niri setup
 

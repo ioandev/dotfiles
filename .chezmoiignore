@@ -1,3 +1,12 @@
+# Noctalia-generated kitty theme files - regenerated per color scheme, never track
+.config/kitty/current-theme.conf
+.config/kitty/themes
+.config/kitty/kitty.conf.bak
+
+# Noctalia-generated active-color cache - regenerated from the selected scheme (settings.json
+# predefinedScheme), so it's machine-specific; tracking it bleeds one machine's colors onto another
+.config/noctalia/colors.json
+
 # Repo-only files - never deploy into $HOME
 README.md
 INSTALLATION.md

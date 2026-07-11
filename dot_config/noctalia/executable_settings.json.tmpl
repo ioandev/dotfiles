@@ -381,7 +381,7 @@
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
         "monitorForColors": "",
-        "predefinedScheme": "Gruber Darker",
+        "predefinedScheme": "{{ if eq .profile "guest" }}Ember Red{{ else }}Gruber Darker{{ end }}",
         "schedulingMode": "off",
         "syncGsettings": true,
         "useWallpaperColors": false
