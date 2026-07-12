@@ -15,6 +15,7 @@ KEY.md
 INVESTIGATION.md
 start-vm.sh
 vm-manjaro-kde-2.xml
+configure-timeshift.sh
 
 mariadb-12.2.2-2-x86_64.pkg.tar.zst
 mariadb-12.2.2-2-x86_64.pkg.tar.zst.sig
