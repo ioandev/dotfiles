@@ -1,0 +1,12 @@
+# Noctalia v4 (Quickshell) leftovers. v5 is a native C++ shell with a different
+# config layout, and it ignores every one of these files - except user-templates.toml,
+# which it *does* parse (v5 merges every *.toml in ~/.config/noctalia/) and then flags
+# as unknown keys, since v5 declares templates under [theme.templates] instead.
+#
+# The v4 configs are recoverable from this repo's git history if you ever need them:
+#   git log --all --diff-filter=D -- dot_config/noctalia
+.config/noctalia/settings.json
+.config/noctalia/colorschemes
+.config/noctalia/user-templates.toml
+.config/noctalia/plugins.json
+.config/noctalia/colors.json

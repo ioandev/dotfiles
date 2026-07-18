@@ -1,0 +1,26 @@
+{{ if eq .profile "guest" -}}
+#!/bin/bash
+set -e
+
+# Guest VMs must launch spice-vdagent exactly once. Two things try to:
+#   1. the systemd user unit `spice-vdagent.service` (WantedBy=graphical-session.target),
+#      which runs `spice-vdagent -x` WITHOUT GDK_BACKEND=x11, and
+#   2. niri's `spawn-at-startup "env" "GDK_BACKEND=x11" "spice-vdagent"`
+#      (see dot_config/niri/executable_config.kdl.tmpl — the correctly-configured one).
+# Only one agent may hold the vdagentd socket, so they race at every login
+# ("spice-vdagentd: An agent is already connected for this session"); the loser dies
+# with "Connection reset by peer". When the systemd copy wins the coin flip it can't
+# open the Xwayland (:1) display without GDK_BACKEND=x11, so guest->host clipboard
+# silently breaks — copies vanish ~9/10 times until you re-copy.
+#
+# Mask the user unit so niri's spawn is the sole launcher. The system daemon
+# (spice-vdagentd) is untouched. Undo with: systemctl --user unmask spice-vdagent.service
+# Runs once; re-runs only if this script's contents change.
+
+if [ "$(systemctl --user is-enabled spice-vdagent.service 2>/dev/null || true)" != "masked" ]; then
+    systemctl --user mask spice-vdagent.service
+    echo "Masked user spice-vdagent.service (niri spawns the clipboard agent with GDK_BACKEND=x11 instead)."
+else
+    echo "User spice-vdagent.service already masked; nothing to do."
+fi
+{{- end }}

@@ -1,0 +1,140 @@
+# Use powerline
+USE_POWERLINE="true"
+# Has weird character width
+# Example:
+#    is not a diamond
+HAS_WIDECHARS="false"
+# Source manjaro-zsh-configuration
+if [[ -e /usr/share/zsh/manjaro-zsh-config ]]; then
+  source /usr/share/zsh/manjaro-zsh-config
+fi
+# Use manjaro zsh prompt
+if [[ -e /usr/share/zsh/manjaro-zsh-prompt ]]; then
+  source /usr/share/zsh/manjaro-zsh-prompt
+fi
+
+
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH="$PATH:$HOME/go/bin"
+export PATH="$PATH:$HOME/bin"   # chezmoi and other user-local binaries
+
+alias c='clear'
+alias o='claude --model claude-opus-4-7'
+alias s='claude --model claude-sonnet-4-6'
+alias cl='claude --dangerously-skip-permissions'
+
+# w <worktree-name> [--resume] — spin up (or re-enter) a git worktree and launch claude in it.
+# Gate: refuses to run unless the working tree is clean AND local main is pushed to origin/main.
+w() {
+  emulate -L zsh
+  local resume=0 name="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      --resume) resume=1 ;;
+      -*)       echo "w: unknown flag: $arg" >&2; return 1 ;;
+      *)
+        if [[ -z "$name" ]]; then name="$arg"
+        else echo "w: unexpected extra argument: $arg" >&2; return 1; fi ;;
+    esac
+  done
+  if [[ -z "$name" ]]; then
+    echo "usage: w <worktree-name> [--resume]" >&2
+    return 1
+  fi
+
+  # Anchor at the *main* worktree so `w` behaves the same whether it is run from
+  # the main checkout or from inside another worktree (avoids nesting worktrees).
+  local gitdir root
+  gitdir=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || {
+    echo "w: not inside a git repository" >&2; return 1; }
+  root=${gitdir:h}
+
+  # --- Gate: everything committed and pushed to origin/main ---
+  # (exclude the worktree-storage dir: linked worktrees are separate working
+  #  trees, not uncommitted changes of the main one — robust even if a repo
+  #  doesn't gitignore .claude/worktrees/)
+  local -a wtx=(-- . ':(exclude).claude/worktrees')
+  if [[ -n "$(git -C "$root" status --porcelain "${wtx[@]}")" ]]; then
+    echo "w: gate failed — uncommitted changes; commit them first:" >&2
+    git -C "$root" status --short "${wtx[@]}" >&2
+    return 1
+  fi
+  git -C "$root" fetch --quiet origin main 2>/dev/null \
+    || echo "w: warning — could not reach origin (offline?); using last-known origin/main" >&2
+  if ! git -C "$root" rev-parse --verify --quiet main >/dev/null; then
+    echo "w: gate failed — no local 'main' branch" >&2; return 1
+  fi
+  if ! git -C "$root" rev-parse --verify --quiet origin/main >/dev/null; then
+    echo "w: gate failed — no origin/main to compare against" >&2; return 1
+  fi
+  local ahead
+  ahead=$(git -C "$root" rev-list --count origin/main..main)
+  if [[ "$ahead" != "0" ]]; then
+    echo "w: gate failed — local main is $ahead commit(s) ahead of origin/main; push first" >&2
+    return 1
+  fi
+
+  # --- Gate passed: create or re-enter the worktree, then launch claude ---
+  local wt="$root/.claude/worktrees/$name" branch="worktree-$name"
+  if [[ -d "$wt" ]]; then
+    echo "w: re-entering existing worktree $wt" >&2
+  elif git -C "$root" show-ref --verify --quiet "refs/heads/$branch"; then
+    git -C "$root" worktree add "$wt" "$branch" || return 1
+  else
+    git -C "$root" worktree add -b "$branch" "$wt" origin/main || return 1
+  fi
+
+  cd "$wt" || return 1
+  if (( resume )); then claude --resume; else claude; fi
+}
+_w() {
+  local root wtdir
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || return
+  wtdir="$root/.claude/worktrees"
+  local -a names
+  [[ -d "$wtdir" ]] && names=(${(f)"$(ls -d "$wtdir"/*/ 2>/dev/null | sed 's:/*$::;s:.*/::')"})
+  _values 'worktree' $names '--resume'
+}
+compdef _w w
+
+d() {
+  yt-dlp -f "bestvideo[height<=480]+bestaudio/best[height<=480]" \
+    --merge-output-format mp4 \
+    -o "$HOME/Documents/repos/youtube-dl/%(title)s.%(ext)s" \
+    "$1"
+}
+cdz() {
+    local dir={{ if eq .profile "guest" }}/repos{{ else }}~/Documents/repos{{ end }}/"$1"
+    if [ ! -d "$dir" ]; then
+        echo "cdz: no such repo: $1" >&2
+        return 1
+    fi
+    zellij action new-tab --cwd "$dir" --name "$1" --layout default
+}
+_cdz() {
+    _values 'repo' ${(f)"$(cd {{ if eq .profile "guest" }}/repos{{ else }}~/Documents/repos{{ end }} && ls -d */ 2>/dev/null | sed 's:/$::')"}
+}
+compdef _cdz cdz
+
+alias e='exit'
+
+nmv() {
+    if [ $# -eq 2 ]; then
+        niri msg action move-workspace-to-index --reference "$1" "$2"
+    else
+        niri msg action move-workspace-to-index "$1"
+    fi
+}
+
+n() {
+    if [ $# -eq 0 ]; then
+        niri msg action unset-workspace-name
+    else
+        niri msg action set-workspace-name -- "- $* -"
+    fi
+}
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

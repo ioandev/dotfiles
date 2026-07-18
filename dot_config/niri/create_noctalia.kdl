@@ -1,0 +1,8 @@
+// Placeholder so niri's `include "noctalia.kdl"` resolves on a fresh machine before
+// Noctalia has run for the first time.
+//
+// Noctalia overwrites this file with the active palette's colors (focus-ring, border,
+// shadow, tab-indicator, insert-hint, recent-windows) every time the color scheme
+// changes - that's its builtin "niri" theme template. The `create_` prefix means
+// chezmoi writes this file once, if it is missing, and never touches it again, so
+// those generated colors are never clobbered by `chezmoi apply`.
