@@ -22,7 +22,7 @@ This will:
 
 1. Generate `~/.config/chezmoi/chezmoi.toml` from `.chezmoi.toml.tmpl` (VS Code diff/merge tooling — no manual setup needed). You'll be asked for a **machine profile** — `full` or `guest`. See [Machine profiles](#machine-profiles) below to choose the right one, preset it non-interactively, or change it later.
 2. Run the `run_once_before_*` scripts first: full system update, then podman install. Expect sudo prompts.
-3. Apply all dotfiles (`~/.config/niri`, `~/.config/noctalia`, `~/.config/hypr`, `~/.zshrc`, etc.).
+3. Apply all dotfiles (`~/.config/niri`, `~/.config/noctalia`, `~/.local/state/noctalia/settings.toml`, `~/.config/hypr`, `~/.zshrc`, etc.).
 4. Run every `run_once_install-*.sh` script — this installs the full application set (browsers, dev tools, VMs, etc.) and takes a while on first run.
 
 Some templates are hostname-aware (`dot_config/niri/scripts/screens.yml.tmpl` matches hostnames `pikaoslenovo` / `pikaos`, with a fallback). Set your hostname before running `chezmoi apply` if you want a machine-specific config picked up:
@@ -58,7 +58,7 @@ Omit `--promptChoice` to be asked interactively (the plain command in [step 2](#
 
 | Area | `full` | `guest` |
 |---|---|---|
-| Noctalia color scheme (`dot_config/noctalia/…settings.json.tmpl`) | Gruber Darker | Ember Red |
+| Noctalia color scheme (`private_dot_local/private_state/noctalia/settings.toml.tmpl`) | Ayu (v5 builtin) | Ember Red (custom palette) |
 | SPICE clipboard stack (`run_once_install-spice-guest-tools`) | — | installed |
 | niri `spice-vdagent` autostart (`dot_config/niri/…config.kdl.tmpl`) | — | yes |
 | hypridle | left as-is | disabled (`run_once_disable-hypridle-if-enabled`) |
@@ -82,21 +82,36 @@ Preview what a switch would touch before committing to it with `chezmoi diff`.
 
 ## 3. First-time niri setup
 
-The run_once scripts install supporting pieces (xwayland-satellite, screencast portal, dolphin), but **niri itself and the shell around it are not installed by any script**. On Manjaro:
+The run_once scripts install supporting pieces (xwayland-satellite, screencast portal, dolphin) and Noctalia itself, but **niri and the rest of the session bits are not installed by any script**. On Manjaro:
 
 ```bash
 sudo pacman -S --needed niri swww mate-polkit gammastep \
     grim slurp swappy wl-clipboard playerctl \
     hypridle hyprlock
-yay -S noctalia-shell   # Quickshell-based bar/launcher used by the config ("qs -c noctalia-shell")
 ```
+
+Noctalia itself **is** scripted — `run_once_install-noctalia.sh` does the whole thing:
+
+- Picks a repos root: `/repos` if it exists, else `~/Documents/repos` (override with `NOCTALIA_REPOS_ROOT`).
+  Checkouts land in `<root>/_external/`.
+- Clones the `ioandev/noctalia` and `ioandev/community-plugins` forks, both on the `ioan` branch.
+- Symlinks the dev plugins (`cpu-bars`) into `~/.local/share/noctalia-dev-plugins/`, which is the
+  `devlocal` plugin source declared under `[plugins]` in `settings.toml`.
+- Installs build deps and builds/installs Noctalia to `/usr/local`.
+- Removes the v4 packages (`noctalia-shell`, `noctalia-qs`).
+
+It **skips the build** if a v5 binary is already on `$PATH` (e.g. the AUR `noctalia-git`), so it won't
+shadow a packaged install with a `/usr/local` build that then drifts. Force with `NOCTALIA_FORCE_BUILD=1`.
+
+Both forks push over the `github-ioandev` SSH alias from `~/.ssh/config`; without that alias the script
+clones over HTTPS, which is read-only until you re-point `origin`.
 
 What each is for (all referenced by `~/.config/niri/config.kdl`):
 
 | Package | Role |
 |---|---|
 | `niri` | The compositor itself |
-| `noctalia-shell` (+ `quickshell` dep) | Bar, launcher (`Mod+Space`), control center (`Mod+S`), volume/brightness OSD, lock trigger |
+| `noctalia` (v5, built from source — see above) | Bar, launcher (`Mod+Space`), control center (`Mod+S`), volume/brightness OSD, lock trigger |
 | `swww` | Wallpaper daemon (placed in backdrop) |
 | `mate-polkit` | Polkit auth agent, spawned at startup |
 | `hypridle` / `hyprlock` | Idle daemon + lock screen (configs in `~/.config/hypr/`) |
@@ -145,6 +160,34 @@ That gives host↔guest clipboard sync: vdagent binds the Xwayland display (xway
 - `Mod+Delete` — escape hatch when a fullscreen app inhibits shortcuts
 
 Keyboard layout is `gb` — change in the `input.keyboard.xkb` block if needed.
+
+### Noctalia v5 config layout
+
+v5 is a native C++/Wayland shell (v4 was Quickshell-based). Its config lives in two layers,
+and only some of it belongs under chezmoi:
+
+| Path | What it is | Tracked |
+|---|---|---|
+| `~/.local/state/noctalia/settings.toml` | The layer the settings GUI writes. Overrides everything below it. | **yes** (`private_dot_local/private_state/noctalia/settings.toml.tmpl`) |
+| `~/.config/noctalia/palettes/*.json` | Custom color palettes, ported from the v4 `colorschemes/` dir | **yes** |
+| `~/.config/noctalia/*.toml` | Optional hand-authored declarative config; every `*.toml` here is merged alphabetically | no — not used by this setup |
+| `~/.local/state/noctalia/` (everything else) | Clipboard history, notification history, cloned plugin repos, telemetry id, caches | no (`.chezmoiignore`) |
+| `~/.config/niri/noctalia.kdl`, `~/.config/kitty/themes/noctalia.conf` | Generated by Noctalia's builtin theme templates on every scheme change | no (seeded once via `create_`) |
+
+Because `settings.toml` is the GUI-written layer, it goes dirty in `chezmoi status` whenever you
+change a setting in the UI — that's expected. Re-capture with `chezmoi re-add ~/.local/state/noctalia/settings.toml`,
+but check the diff first: it also accumulates per-monitor keys (output names, lockscreen widget
+coordinates) that are specific to the machine you captured it on.
+
+Handy IPC verbs (the v4 `qs -c noctalia-shell ipc call <target> <method>` form is gone):
+
+```bash
+noctalia msg panel-toggle launcher     # or: control-center
+noctalia msg settings-toggle
+noctalia msg session lock              # lock | suspend | logout | reboot | shutdown
+noctalia msg config-reload             # live-reload settings.toml, no restart
+noctalia msg --help                    # full verb list
+```
 
 ## 4. Post-install checks
 

@@ -1,11 +1,19 @@
-# Noctalia-generated kitty theme files - regenerated per color scheme, never track
+# Noctalia-generated kitty theme files - written by the v5 builtin "kitty" template
+# (-> ~/.config/kitty/themes/noctalia.conf) on every scheme change, never track
 .config/kitty/current-theme.conf
 .config/kitty/themes
 .config/kitty/kitty.conf.bak
 
-# Noctalia-generated active-color cache - regenerated from the selected scheme (settings.json
-# predefinedScheme), so it's machine-specific; tracking it bleeds one machine's colors onto another
-.config/noctalia/colors.json
+# Noctalia v5 runtime state. settings.toml IS tracked (it's the layer the settings GUI
+# writes, same role v4's settings.json had); everything else under the state dir is
+# generated - histories, caches, cloned plugin repos, telemetry id, dev logs.
+.local/state/noctalia/*
+!.local/state/noctalia/settings.toml
+
+# NOTE: "save wallpaper palette as custom" writes generated palettes into
+# ~/.config/noctalia/palettes/ named after the wallpaper file, mixed in with the
+# hand-authored ones tracked here. They stay unmanaged as long as you add palettes
+# individually - don't `chezmoi add` the whole palettes/ dir.
 
 # Repo-only files - never deploy into $HOME
 README.md

@@ -11,7 +11,7 @@ See [INSTALLATION.md](INSTALLATION.md). Fresh bootstrap:
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply ioandev/dotfiles
 ```
 
-At init you pick a **machine profile** — `full` (physical/main machine) or `guest` (VM). It controls the installed app set and a few templated configs (e.g. the Noctalia color scheme: Gruber Darker on `full`, Ember Red on `guest`). Preset it non-interactively with `--promptChoice "Machine profile=guest"`. Details and the full per-profile breakdown: [Machine profiles](INSTALLATION.md#machine-profiles).
+At init you pick a **machine profile** — `full` (physical/main machine) or `guest` (VM). It controls the installed app set and a few templated configs (e.g. the Noctalia color scheme: Ayu on `full`, Ember Red on `guest`). Preset it non-interactively with `--promptChoice "Machine profile=guest"`. Details and the full per-profile breakdown: [Machine profiles](INSTALLATION.md#machine-profiles).
 
 ## Known Issues & Fixes
 
