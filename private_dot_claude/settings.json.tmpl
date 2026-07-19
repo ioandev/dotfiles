@@ -5,6 +5,12 @@
   },
   "skipDangerousModePermissionPrompt": true,
 {{- end }}
+  "model": "opus[1m]",
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true
+  },
+  "agentPushNotifEnabled": true,
   "theme": "dark",
   "effortLevel": "xhigh"
 }
