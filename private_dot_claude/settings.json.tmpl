@@ -1,10 +1,11 @@
 {
-{{- if eq .chezmoi.hostname "nordic-standardpc" }}
+{{- if eq .profile "guest" }}
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
   "skipDangerousModePermissionPrompt": true,
 {{- end }}
   "theme": "dark",
-  "effortLevel": "xhigh"
+  "effortLevel": "xhigh"{{ if eq .profile "guest" }},
+  "agentPushNotifEnabled": true{{ end }}
 }

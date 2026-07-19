@@ -135,6 +135,51 @@ n() {
     fi
 }
 
+# List Claude skills (SKILL.md) and commands (.claude/commands/*.md) under
+# repos and ~/.claude, indented.
+# Usage: claude-ls [--filter STR]  (STR = case-insensitive partial match on name)
+claude-ls() {
+    local root name group last_group filter=""
+    case $1 in
+        --filter=*) filter=${1#--filter=} ;;
+        --filter)   filter=$2 ;;
+    esac
+    local prune=(-name node_modules -o -name .venv -o -name site-packages
+        -o -name .cursor -o -name .windsurf -o -name .git
+        -o -path '*/plugins/cache' -o -path '*/plugins/marketplaces'
+        -o -path '*/.claude/worktrees')
+    for root in "$HOME/Documents/repos" "$HOME/.claude"; do
+        [[ -d $root ]] || continue
+        print -P "%B%F{cyan}$root%f%b"
+
+        print -P "  %F{green}skills%f"
+        last_group=""
+        find "$root" \( "${prune[@]}" \) -prune -o -name SKILL.md -print 2>/dev/null \
+            | sort | while IFS= read -r f; do
+            name=${f:h:t}
+            [[ -n $filter && ${name:l} != *${filter:l}* ]] && continue
+            group=${${f:h:h}#$root/}
+            if [[ $group != $last_group ]]; then
+                print -P "    %F{yellow}$group%f"; last_group=$group
+            fi
+            print "      $name"
+        done
+
+        print -P "  %F{green}commands%f"
+        last_group=""
+        find "$root" \( "${prune[@]}" \) -prune -o -path '*/.claude/commands/*.md' -print 2>/dev/null \
+            | sort | while IFS= read -r f; do
+            name=${f:t:r}
+            [[ -n $filter && ${name:l} != *${filter:l}* ]] && continue
+            group=${${f:h}#$root/}
+            if [[ $group != $last_group ]]; then
+                print -P "    %F{yellow}$group%f"; last_group=$group
+            fi
+            print "      $name"
+        done
+    done
+}
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
