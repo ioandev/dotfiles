@@ -355,7 +355,12 @@ binds {
     // ─── Emergency Escape Key ───
     // Use this when a fullscreen app blocks your keybinds.
     // It disables any active keyboard shortcut inhibitor, restoring control.
-    MOD+DELETE                          allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    //MOD+DELETE                          allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+{{ if ne .profile "guest" }}
+    // Escape from VM guest: focus screen 1 + next workspace; if already on its
+    // workspace 2, jump back to workspace 1 and focus virt-manager.
+    Mod+Delete allow-inhibiting=false { spawn "/home/nordic/.config/niri/scripts/vm-workspace-toggle.sh"; }
+{{ end }}
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
     MOD+SHIFT+P                         { power-off-monitors; } // Turn off screens (useful for OLED or privacy)
