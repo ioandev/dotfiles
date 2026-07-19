@@ -1,42 +1,54 @@
 config_version = 2
 
-[bar.default]
-background_opacity = 0.669999985024333
-capsule_thickness = 0.7799999862909317
-center = [ "clock", "custom_button_2", "sysmon", "cpu-bars", "tray", "workspaces", "taskbar", "custom_button_3" ]
-color = "primary"
-end = [
-    "media",
-    "tray",
-    "notifications",
-    "clipboard",
-    "network",
-    "bluetooth",
-    "volume",
-    "brightness",
-    "battery",
-    "session",
-    "clock",
-    "date",
-    "control-center"
-]
-icon_color = "secondary"
-margin_ends = 5
-padding = 0
-panel_overlap = 2
-position = "bottom"
-radius = 0
-radius_top_left = 0
-radius_top_right = 0
-start = [ "control-center", "launcher", "wallpaper", "workspaces", "group:g2", "media" ]
+[bar]
+order = [ "default", "bar-left", "bar-right" ]
 
-    [[bar.default.capsule_group]]
-    enabled = true
-    fill = "surface_variant"
-    id = "g2"
-    members = [ "clock", "date" ]
-    opacity = 1.0
-    padding = 6.0
+    [bar.bar-left]
+    enabled = false
+    position = "left"
+    thickness = 22
+
+    [bar.bar-right]
+    enabled = false
+    position = "right"
+
+    [bar.default]
+    background_opacity = 0.669999985024333
+    capsule_thickness = 0.7799999862909317
+    center = [ "clock", "custom_button_2", "sysmon", "cpu-bars", "tray", "workspaces", "taskbar", "custom_button_3" ]
+    color = "primary"
+    end = [
+        "media",
+        "tray",
+        "notifications",
+        "clipboard",
+        "network",
+        "bluetooth",
+        "volume",
+        "brightness",
+        "battery",
+        "session",
+        "clock",
+        "date",
+        "control-center"
+    ]
+    icon_color = "secondary"
+    margin_ends = 0
+    padding = 14
+    panel_overlap = 2
+    position = "bottom"
+    radius = 0
+    radius_top_left = 20
+    radius_top_right = 20
+    start = [ "control-center", "launcher", "wallpaper", "workspaces", "group:g2", "media" ]
+
+        [[bar.default.capsule_group]]
+        enabled = true
+        fill = "surface_variant"
+        id = "g2"
+        members = [ "clock", "date" ]
+        opacity = 1.0
+        padding = 6.0
 
 [dock]
 background_opacity = 0.99999997764825821
@@ -104,17 +116,25 @@ telemetry_enabled = true
     [shell.animation]
     speed = 1.1000000163912773
 
+    [shell.frame]
+    bleed = 4
+    enabled = true
+    opacity = 0.53999998793005943
+    radius = 13
+
     [shell.panel]
     launcher_position = "auto"
 
-# Per-profile color scheme, carried over from the v4 split: the VM stays visually
-# distinct from the physical machine. "Ember Red" is a custom palette shipped in
-# ~/.config/noctalia/palettes/ (ported from the v4 colorschemes/ dir); "Ayu" is a
-# v5 builtin. v5 has no "Gruber Darker" builtin, so full tracks the live setup.
+    [shell.screen_corners]
+    enabled = true
+    size = 39
+
 [theme]
 mode = "dark"
 {{ if eq .profile "guest" -}}
 source = "custom"
+builtin = "Noctalia"
+community_palette = "Oxocarbon"
 custom_palette = "Ember Red"
 {{ else -}}
 source = "builtin"
